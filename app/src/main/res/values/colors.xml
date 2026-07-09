@@ -1,10 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<!--    <color name="black">#FF000000</color>-->
+<!--    <color name="white">#FFFFFFFF</color>-->
+
+<!--    <color name="bg">#ECFAE5</color>-->
+<!--    <color name="text_black">FF000000</color>-->
+<!--    <color name="btn">#467235</color>-->
+<!--    <color name="text_green">#283F24</color>-->
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Background -->
     <color name="bg">#ECFAE5</color>
-    <color name="text_black">FF000000</color>
-    <color name="btn">#467235</color>
+
+    <!-- Primary -->
+    <color name="primary">#467235</color>
+    <color name="primary_dark">#283F24</color>
+
+    <!-- Text -->
+    <color name="text_black">#FF000000</color>
     <color name="text_green">#283F24</color>
+    <color name="text_gray">#757575</color>
+
+    <!-- Button -->
+    <color name="btn">#467235</color>
+
+    <!-- Status -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FB8C00</color>
+    <color name="danger">#E53935</color>
+
+    <!-- Card -->
+    <color name="card">#FFFFFF</color>
 </resources>
