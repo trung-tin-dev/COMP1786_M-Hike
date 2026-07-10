@@ -3,6 +3,10 @@ package com.example.m_hike.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.content.ContentValues;
+import android.database.Cursor;
+
+import com.example.m_hike.model.User;
 
 import androidx.annotation.Nullable;
 
@@ -55,5 +59,98 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         onCreate(db);
 
+    }
+
+//    Insert User
+    public boolean insertUser(User user) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(USER_NAME, user.getUserName());
+        values.put(USER_EMAIL, user.getUserEmail());
+        values.put(USER_PASSWORD, user.getPassword());
+        values.put(USER_AVATAR, user.getAvatarPath());
+        values.put(USER_CREATED_AT, user.getCreatedAt());
+
+        long result = db.insert(TABLE_USERS, null, values);
+
+        db.close();
+
+        return result != -1;
+    }
+
+//    Check email Exist
+    public boolean isEmailExists(String email) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                null,
+                USER_EMAIL + "=?",
+                new String[]{email},
+                null,
+                null,
+                null
+        );
+
+        boolean exists = cursor.getCount() > 0;
+
+        cursor.close();
+        db.close();
+
+        return exists;
+    }
+
+//    Check Login
+    public boolean checkLogin(String email, String password) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                null,
+                USER_EMAIL + "=? AND " + USER_PASSWORD + "=?",
+                new String[]{email, password},
+                null,
+                null,
+                null
+        );
+
+        boolean success = cursor.getCount() > 0;
+
+        cursor.close();
+        db.close();
+
+        return success;
+    }
+
+//    Get User Name
+    public String getUsernameByEmail(String email) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                new String[]{USER_NAME},
+                USER_EMAIL + "=?",
+                new String[]{email},
+                null,
+                null,
+                null
+        );
+
+        String username = "";
+
+        if (cursor.moveToFirst()) {
+            username = cursor.getString(0);
+        }
+
+        cursor.close();
+        db.close();
+
+        return username;
     }
 }
