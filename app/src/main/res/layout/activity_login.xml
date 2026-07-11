@@ -70,17 +70,41 @@ android:fillViewport="true">
                 android:textColor="@color/text_green"
                 />
 
-            <EditText
-                android:id="@+id/etLoginPassword"
+<!--            <EditText-->
+<!--                android:id="@+id/etLoginPassword"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="50dp"-->
+<!--                android:background="@drawable/edittext_selector"-->
+<!--                android:hint="Enter your password"-->
+<!--                android:inputType="textPassword"-->
+<!--                android:paddingLeft="20dp"-->
+<!--                android:paddingRight="20dp"-->
+<!--                android:textSize="15sp"-->
+<!--                 />-->
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/edittext_selector"
-                android:hint="Enter your password"
-                android:inputType="textPassword"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:textSize="15sp"
-                android:layout_marginBottom="24dp" />
+                android:layout_height="wrap_content"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLoginPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/edittext_selector"
+                    android:hint="Enter your password"
+                    android:inputType="textPassword"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:textSize="15sp"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <CheckBox
+                android:id="@+id/cbRememberMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Remember Me"
+                android:textColor="@color/text_green"/>
 
             <Button
                 android:id="@+id/btnLogin"
