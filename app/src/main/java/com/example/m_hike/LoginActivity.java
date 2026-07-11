@@ -94,11 +94,16 @@ public class LoginActivity extends AppCompatActivity {
             SharedPreferences preferences =
                     getSharedPreferences("MHIKE", MODE_PRIVATE);
 
+            int userId = databaseHelper.getUserIdByEmail(email);
+
             preferences.edit()
                     .putBoolean("isLogin", cbRememberMe.isChecked())
+                    .putInt("userId", userId)
                     .putString("email", email)
-                    .putString("username",
-                            databaseHelper.getUsernameByEmail(email))
+                    .putString(
+                            "username",
+                            databaseHelper.getUsernameByEmail(email)
+                    )
                     .apply();
 
             Toast.makeText(this,

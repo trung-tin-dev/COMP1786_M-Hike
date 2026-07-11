@@ -1,6 +1,7 @@
 package com.example.m_hike;
 
 import android.app.DatePickerDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -35,6 +36,8 @@ public class AddHikeActivity extends AppCompatActivity {
     private AutoCompleteTextView actDifficulty;
     private SwitchMaterial swParking;
     private Button btnSave;
+    private int hikeId = -1;
+    private boolean isEdit = false;
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -60,6 +63,16 @@ public class AddHikeActivity extends AppCompatActivity {
 
         btnSave = findViewById(R.id.btnSave);
         databaseHelper = new DatabaseHelper(this);
+        hikeId = getIntent().getIntExtra("HIKE_ID", -1);
+
+        if (hikeId != -1) {
+
+            isEdit = true;
+
+            loadHike();
+
+            btnSave.setText("UPDATE");
+        }
 
         //=========================
         // Date Picker
@@ -283,7 +296,14 @@ public class AddHikeActivity extends AppCompatActivity {
 
         Hike hike = new Hike();
 
-        hike.setUserId(1);
+//        hike.setUserId(1);
+        SharedPreferences preferences =
+                getSharedPreferences("MHIKE", MODE_PRIVATE);
+
+        int userId =
+                preferences.getInt("userId", -1);
+
+        hike.setUserId(userId);
 
         hike.setName(hikeName);
 
@@ -312,15 +332,29 @@ public class AddHikeActivity extends AppCompatActivity {
 
         hike.setUpdatedAt(now);
 
-        hike.setDeletedAt("");
+        hike.setDeletedAt(null);
 
-        boolean success = databaseHelper.insertHike(hike);
+        boolean success;
+
+        if (isEdit) {
+
+            hike.setId(hikeId);
+
+            success = databaseHelper.updateHike(hike);
+
+        } else {
+
+            success = databaseHelper.insertHike(hike);
+
+        }
 
         if (success) {
 
             Toast.makeText(
                     this,
-                    "Hike added successfully",
+                    isEdit
+                            ? "Hike updated successfully"
+                            : "Hike added successfully",
                     Toast.LENGTH_SHORT
             ).show();
 
@@ -334,5 +368,39 @@ public class AddHikeActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT
             ).show();
         }
+    }
+
+
+
+    private void loadHike() {
+
+        Hike hike = databaseHelper.getHikeById(hikeId);
+
+        if (hike == null) return;
+
+        etHikeName.setText(hike.getName());
+
+        etLocation.setText(hike.getLocation());
+
+        etDate.setText(hike.getDate());
+
+        etLength.setText(String.valueOf(hike.getLength()));
+
+        actDifficulty.setText(
+                hike.getDifficulty(),
+                false
+        );
+
+        tvEstimatedDuration.setText(
+                hike.getEstimatedDuration()
+        );
+
+        etDescription.setText(
+                hike.getDescription()
+        );
+
+        swParking.setChecked(
+                hike.isParkingAvailable()
+        );
     }
 }

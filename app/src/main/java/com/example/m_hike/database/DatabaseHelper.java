@@ -5,8 +5,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.content.ContentValues;
 import android.database.Cursor;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import com.example.m_hike.model.User;
 import com.example.m_hike.model.Hike;
@@ -180,6 +184,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return username;
     }
 
+    public int getUserIdByEmail(String email) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                new String[]{USER_ID},
+                USER_EMAIL + "=?",
+                new String[]{email},
+                null,
+                null,
+                null
+        );
+
+        int id = -1;
+
+        if (cursor.moveToFirst()) {
+
+            id = cursor.getInt(0);
+
+        }
+
+        cursor.close();
+
+        return id;
+    }
+
     // ===========================
     // INSERT HIKE
     // ===========================
@@ -247,11 +278,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_HIKES,
                 null,
-                HIKE_USER_ID + "=? AND " +
-                        HIKE_DELETED_AT + " IS NULL",
-                new String[]{
-                        String.valueOf(userId)
-                },
+                HIKE_STATUS + "=?",
+                new String[]{"ACTIVE"},
                 null,
                 null,
                 HIKE_CREATED_AT + " DESC"
@@ -330,13 +358,302 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 hikeList.add(hike);
 
             } while (cursor.moveToNext());
+        }
+        cursor.close();
+//        db.close();
+        return hikeList;
+    }
+
+    public List<Hike> getAllHikes() {
+
+        List<Hike> hikeList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_HIKES,
+                null,
+                HIKE_STATUS + "=?",
+                new String[]{"ACTIVE"},
+                null,
+                null,
+                HIKE_CREATED_AT + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Hike hike = new Hike();
+
+                hike.setId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_ID)));
+                hike.setUserId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_USER_ID)));
+                hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_NAME)));
+                hike.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_LOCATION)));
+                hike.setDate(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DATE)));
+                hike.setParkingAvailable(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_PARKING)) == 1
+                );
+                hike.setLength(cursor.getDouble(cursor.getColumnIndexOrThrow(HIKE_LENGTH)));
+                hike.setDifficulty(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DIFFICULTY)));
+                hike.setEstimatedDuration(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DURATION)));
+                hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DESCRIPTION)));
+                hike.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_STATUS)));
+                hike.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_CREATED_AT)));
+                hike.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_UPDATED_AT)));
+                hike.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DELETED_AT)));
+
+                hikeList.add(hike);
+
+            } while (cursor.moveToNext());
 
         }
 
         cursor.close();
-//        db.close();
 
         return hikeList;
+    }
 
+
+    public Hike getHikeById(int hikeId) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_HIKES,
+                null,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)},
+                null,
+                null,
+                null
+        );
+
+        Hike hike = null;
+
+        if (cursor.moveToFirst()) {
+
+            hike = new Hike();
+
+            hike.setId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_ID)));
+            hike.setUserId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_USER_ID)));
+            hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_NAME)));
+            hike.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_LOCATION)));
+            hike.setDate(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DATE)));
+
+            hike.setParkingAvailable(
+                    cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_PARKING)) == 1
+            );
+
+            hike.setLength(
+                    cursor.getDouble(cursor.getColumnIndexOrThrow(HIKE_LENGTH))
+            );
+
+            hike.setDifficulty(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DIFFICULTY))
+            );
+
+            hike.setEstimatedDuration(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DURATION))
+            );
+
+            hike.setDescription(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DESCRIPTION))
+            );
+
+            hike.setStartTime(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_START_TIME))
+            );
+
+            hike.setEndTime(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_END_TIME))
+            );
+
+            hike.setStatus(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_STATUS))
+            );
+
+            hike.setCreatedAt(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_CREATED_AT))
+            );
+
+            hike.setUpdatedAt(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_UPDATED_AT))
+            );
+
+            hike.setDeletedAt(
+                    cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DELETED_AT))
+            );
+        }
+
+        cursor.close();
+
+        return hike;
+    }
+
+
+
+    public boolean updateHike(Hike hike) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_NAME, hike.getName());
+        values.put(HIKE_LOCATION, hike.getLocation());
+        values.put(HIKE_DATE, hike.getDate());
+
+        values.put(HIKE_PARKING,
+                hike.isParkingAvailable() ? 1 : 0);
+
+        values.put(HIKE_LENGTH,
+                hike.getLength());
+
+        values.put(HIKE_DIFFICULTY,
+                hike.getDifficulty());
+
+        values.put(HIKE_DURATION,
+                hike.getEstimatedDuration());
+
+        values.put(HIKE_DESCRIPTION,
+                hike.getDescription());
+
+        values.put(HIKE_START_TIME,
+                hike.getStartTime());
+
+        values.put(HIKE_END_TIME,
+                hike.getEndTime());
+
+        values.put(HIKE_UPDATED_AT,
+                hike.getUpdatedAt());
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{
+                        String.valueOf(hike.getId())
+                }
+        );
+
+        return result > 0;
+    }
+
+
+    public boolean softDeleteHike(int hikeId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_STATUS, "DELETED");
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        values.put(HIKE_DELETED_AT, now);
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+//    Restore hike
+    public boolean restoreHike(int hikeId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_STATUS, "ACTIVE");
+        values.putNull(HIKE_DELETED_AT);
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+//    Delete forever
+    public boolean deleteHikeForever(int hikeId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int result = db.delete(
+                TABLE_HIKES,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+    // Get Delete Hike for Trash
+    public List<Hike> getDeletedHikes() {
+
+        List<Hike> hikeList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_HIKES,
+                null,
+                HIKE_STATUS + "=?",
+                new String[]{"DELETED"},
+                null,
+                null,
+                HIKE_DELETED_AT + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Hike hike = cursorToHike(cursor);
+
+                hikeList.add(hike);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return hikeList;
+    }
+
+    private Hike cursorToHike(Cursor cursor) {
+
+        Hike hike = new Hike();
+
+        hike.setId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_ID)));
+        hike.setUserId(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_USER_ID)));
+        hike.setName(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_NAME)));
+        hike.setLocation(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_LOCATION)));
+        hike.setDate(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DATE)));
+        hike.setParkingAvailable(cursor.getInt(cursor.getColumnIndexOrThrow(HIKE_PARKING)) == 1);
+        hike.setLength(cursor.getDouble(cursor.getColumnIndexOrThrow(HIKE_LENGTH)));
+        hike.setDifficulty(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DIFFICULTY)));
+        hike.setEstimatedDuration(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DURATION)));
+        hike.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DESCRIPTION)));
+        hike.setStartTime(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_START_TIME)));
+        hike.setEndTime(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_END_TIME)));
+        hike.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_STATUS)));
+        hike.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_CREATED_AT)));
+        hike.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_UPDATED_AT)));
+        hike.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DELETED_AT)));
+
+        return hike;
     }
 }
