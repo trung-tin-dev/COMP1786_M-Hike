@@ -12,6 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.m_hike.database.DatabaseHelper;
 import com.example.m_hike.model.Hike;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class HikeDetailActivity extends AppCompatActivity {
 
     private TextView tvName;
@@ -22,9 +27,19 @@ public class HikeDetailActivity extends AppCompatActivity {
     private TextView tvDifficulty;
     private TextView tvDuration;
     private TextView tvDescription;
+    private TextView tvStatus;
+    private TextView tvStartTime;
+    private TextView tvEndTime;
+    private TextView tvActualDuration;
+
+    private Button btnStart;
+    private Button btnFinish;
+    private Button btnAddObservation;
+    private Button btnViewObservation;
 
     private Button btnUpdate;
     private Button btnDelete;
+    private Button btnObservation;
 
     private DatabaseHelper databaseHelper;
 
@@ -43,9 +58,20 @@ public class HikeDetailActivity extends AppCompatActivity {
         tvDifficulty = findViewById(R.id.tvDifficulty);
         tvDuration = findViewById(R.id.tvDuration);
         tvDescription = findViewById(R.id.tvDescription);
+        tvStatus = findViewById(R.id.tvStatus);
+        tvStartTime = findViewById(R.id.tvStartTime);
+        tvEndTime = findViewById(R.id.tvEndTime);
+        tvActualDuration = findViewById(R.id.tvActualDuration);
+
+
+        btnStart = findViewById(R.id.btnStart);
+        btnFinish = findViewById(R.id.btnFinish);
 
         btnUpdate = findViewById(R.id.btnUpdate);
         btnDelete = findViewById(R.id.btnDelete);
+        btnStart.setOnClickListener(v -> startHike());
+        btnFinish.setOnClickListener(v -> finishHike());
+        btnObservation = findViewById(R.id.btnObservation);
 
         databaseHelper = new DatabaseHelper(this);
 
@@ -55,7 +81,28 @@ public class HikeDetailActivity extends AppCompatActivity {
             loadHike();
         }
 
+        btnObservation.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    HikeDetailActivity.this,
+                    ObservationActivity.class
+            );
+
+            intent.putExtra(
+                    "HIKE_ID",
+                    hikeId
+            );
+
+            startActivity(intent);
+
+        });
+
         btnUpdate.setOnClickListener(v -> {
+
+            Toast.makeText(this,
+                    "HIKE ID = " + hikeId,
+                    Toast.LENGTH_SHORT).show();
+
 
             Intent intent = new Intent(
                     HikeDetailActivity.this,
@@ -136,10 +183,133 @@ public class HikeDetailActivity extends AppCompatActivity {
                         hike.getEstimatedDuration()
         );
 
+        tvStatus.setText(
+                "📌 Status: " + hike.getStatus()
+        );
+
+        tvStartTime.setText(
+                "▶ Start: " +
+                        (hike.getStartTime() == null ? "-" : hike.getStartTime())
+        );
+
+        tvEndTime.setText(
+                "■ Finish: " +
+                        (hike.getEndTime() == null ? "-" : hike.getEndTime())
+        );
+
+        if (hike.getStartTime() == null ||
+                hike.getEndTime() == null) {
+
+            tvActualDuration.setText(
+                    "⏳ Actual Duration: -"
+            );
+
+        } else {
+
+            tvActualDuration.setText(
+                    "⏳ Actual Duration: " +
+                            calculateDuration(
+                                    hike.getStartTime(),
+                                    hike.getEndTime()
+                            )
+            );
+
+        }
         tvDescription.setText(
                 "📝 Description:\n" +
                         hike.getDescription()
         );
+    }
+
+    private void startHike() {
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        boolean success =
+                databaseHelper.startHike(
+                        hikeId,
+                        now
+                );
+
+        if (success) {
+
+            Toast.makeText(
+                    this,
+                    "Hike started",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            loadHike();
+        }
+    }
+
+    private void finishHike() {
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        boolean success =
+                databaseHelper.finishHike(
+                        hikeId,
+                        now
+                );
+
+        if (success) {
+
+            Toast.makeText(
+                    this,
+                    "Hike completed",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            loadHike();
+        }
+    }
+
+    private String calculateDuration(String start, String end) {
+
+        try {
+
+            SimpleDateFormat format =
+                    new SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss",
+                            Locale.getDefault()
+                    );
+
+            Date startDate = format.parse(start);
+
+            Date endDate = format.parse(end);
+
+            long diff =
+                    endDate.getTime() -
+                            startDate.getTime();
+
+            long totalMinutes =
+                    diff / (1000 * 60);
+
+            long hours =
+                    totalMinutes / 60;
+
+            long minutes =
+                    totalMinutes % 60;
+
+            return hours +
+                    " hour " +
+                    minutes +
+                    " min";
+
+        } catch (ParseException e) {
+
+            e.printStackTrace();
+
+            return "-";
+        }
+
     }
 
     @Override

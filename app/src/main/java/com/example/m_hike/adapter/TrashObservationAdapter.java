@@ -10,31 +10,30 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.m_hike.R;
-import com.example.m_hike.model.Hike;
+import com.example.m_hike.model.Observation;
 
 import java.util.List;
 
-public class TrashAdapter
-        extends RecyclerView.Adapter<TrashAdapter.ViewHolder> {
+public class TrashObservationAdapter
+        extends RecyclerView.Adapter<TrashObservationAdapter.ViewHolder> {
 
-    public interface OnTrashActionListener {
+    public interface OnTrashObservationListener {
 
-        void onRestore(Hike hike);
+        void onRestore(Observation observation);
 
-        void onDeleteForever(Hike hike);
+        void onDeleteForever(Observation observation);
 
     }
 
-    private final List<Hike> hikeList;
+    private final List<Observation> observationList;
+    private final OnTrashObservationListener listener;
 
-    private final OnTrashActionListener listener;
+    public TrashObservationAdapter(
+            List<Observation> observationList,
+            OnTrashObservationListener listener) {
 
-    public TrashAdapter(List<Hike> hikeList,
-                        OnTrashActionListener listener) {
-
-        this.hikeList = hikeList;
+        this.observationList = observationList;
         this.listener = listener;
-
     }
 
     @NonNull
@@ -45,13 +44,12 @@ public class TrashAdapter
 
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(
-                        R.layout.item_trash_hike,
+                        R.layout.item_trash_observation,
                         parent,
                         false
                 );
 
         return new ViewHolder(view);
-
     }
 
     @Override
@@ -59,51 +57,50 @@ public class TrashAdapter
             @NonNull ViewHolder holder,
             int position) {
 
-        Hike hike = hikeList.get(position);
+        Observation observation = observationList.get(position);
 
-        holder.tvName.setText(hike.getName());
+        holder.tvTitle.setText(observation.getTitle());
+
+        holder.tvTime.setText(
+                "Time : " + observation.getObservationTime()
+        );
 
         holder.tvDeletedDate.setText(
-                "Deleted: " + hike.getDeletedAt()
+                "Deleted : " + observation.getDeletedAt()
         );
 
         holder.btnRestore.setOnClickListener(v ->
-                listener.onRestore(hike));
+                listener.onRestore(observation));
 
         holder.btnDeleteForever.setOnClickListener(v ->
-                listener.onDeleteForever(hike));
+                listener.onDeleteForever(observation));
 
     }
 
     @Override
     public int getItemCount() {
-
-        return hikeList.size();
-
+        return observationList.size();
     }
 
-    static class ViewHolder
-            extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvName;
+        TextView tvTitle;
+        TextView tvTime;
         TextView tvDeletedDate;
 
         Button btnRestore;
         Button btnDeleteForever;
 
         public ViewHolder(@NonNull View itemView) {
-
             super(itemView);
 
-            tvName = itemView.findViewById(R.id.tvTrashName);
-
-            tvDeletedDate = itemView.findViewById(R.id.tvTrashDate);
+            tvTitle = itemView.findViewById(R.id.tvObservationTitle);
+            tvTime = itemView.findViewById(R.id.tvObservationTime);
+            tvDeletedDate = itemView.findViewById(R.id.tvDeletedDate);
 
             btnRestore = itemView.findViewById(R.id.btnRestore);
-
             btnDeleteForever =
                     itemView.findViewById(R.id.btnDeleteForever);
-
         }
     }
 }

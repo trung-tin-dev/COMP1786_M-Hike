@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.example.m_hike.model.Observation;
 import com.example.m_hike.model.User;
 import com.example.m_hike.model.Hike;
 
@@ -56,6 +57,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String HIKE_UPDATED_AT = "updated_at";
     public static final String HIKE_DELETED_AT = "deleted_at";
 
+    //==========================
+    // Observation Table
+    //==========================
+
+    private static final String TABLE_OBSERVATIONS = "observations";
+
+    private static final String OBSERVATION_ID = "id";
+    private static final String OBSERVATION_HIKE_ID = "hike_id";
+
+    private static final String OBSERVATION_TITLE = "title";
+    private static final String OBSERVATION_NOTE = "note";
+    private static final String OBSERVATION_TIME = "observation_time";
+
+    private static final String OBSERVATION_CREATED_AT = "created_at";
+    private static final String OBSERVATION_UPDATED_AT = "updated_at";
+    private static final String OBSERVATION_DELETED_AT = "deleted_at";
+
     // Create Users Table
     private static final String CREATE_USERS_TABLE =
             "CREATE TABLE " + TABLE_USERS + " (" +
@@ -88,6 +106,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     HIKE_DELETED_AT + " TEXT" +
                     ");";
 
+    private static final String CREATE_OBSERVATION_TABLE =
+            "CREATE TABLE " + TABLE_OBSERVATIONS + " ("
+                    + OBSERVATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + OBSERVATION_HIKE_ID + " INTEGER NOT NULL,"
+                    + OBSERVATION_TITLE + " TEXT NOT NULL,"
+                    + OBSERVATION_NOTE + " TEXT,"
+                    + OBSERVATION_TIME + " TEXT,"
+                    + OBSERVATION_CREATED_AT + " TEXT,"
+                    + OBSERVATION_UPDATED_AT + " TEXT,"
+                    + OBSERVATION_DELETED_AT + " TEXT,"
+                    + "FOREIGN KEY(" + OBSERVATION_HIKE_ID + ") REFERENCES "
+                    + TABLE_HIKES + "(" + HIKE_ID + ")"
+                    + ")";
+
     public DatabaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -98,6 +130,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_USERS_TABLE);
         // Create Hikes Table
         db.execSQL(CREATE_HIKES_TABLE);
+
+        db.execSQL(CREATE_OBSERVATION_TABLE);
     }
 
     @Override
@@ -655,5 +689,301 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         hike.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(HIKE_DELETED_AT)));
 
         return hike;
+    }
+
+    public boolean startHike(int hikeId, String startTime) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_START_TIME, startTime);
+        values.put(HIKE_STATUS, "ONGOING");
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+    public boolean finishHike(int hikeId, String endTime) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_END_TIME, endTime);
+        values.put(HIKE_STATUS, "COMPLETED");
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+    //==========================
+    // Insert Observation
+    //==========================
+    public boolean insertObservation(Observation observation) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(OBSERVATION_HIKE_ID, observation.getHikeId());
+
+        values.put(OBSERVATION_TITLE, observation.getTitle());
+
+        values.put(OBSERVATION_NOTE, observation.getNote());
+
+        values.put(OBSERVATION_TIME, observation.getObservationTime());
+
+        values.put(OBSERVATION_CREATED_AT, observation.getCreatedAt());
+
+        values.put(OBSERVATION_UPDATED_AT, observation.getUpdatedAt());
+
+        values.put(OBSERVATION_DELETED_AT, observation.getDeletedAt());
+
+        long result = db.insert(
+                TABLE_OBSERVATIONS,
+                null,
+                values
+        );
+
+        return result != -1;
+    }
+
+    //==========================
+// Get Observations By Hike
+//==========================
+
+    public List<Observation> getObservationsByHikeId(int hikeId) {
+
+        List<Observation> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                null,
+                OBSERVATION_HIKE_ID + "=? AND " +
+                        OBSERVATION_DELETED_AT + " IS NULL",
+                new String[]{
+                        String.valueOf(hikeId)
+                },
+                null,
+                null,
+                OBSERVATION_TIME + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Observation observation = new Observation();
+
+                observation.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+
+                observation.setHikeId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+
+                observation.setTitle(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+
+                observation.setNote(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+
+                observation.setObservationTime(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+
+                observation.setCreatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+
+                observation.setUpdatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+
+                observation.setDeletedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+                list.add(observation);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
+    }
+
+
+    public Observation getObservationById(int id) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                null,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null
+        );
+
+        Observation observation = null;
+
+        if (cursor.moveToFirst()) {
+
+            observation = new Observation();
+
+            observation.setId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+            observation.setHikeId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+            observation.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+            observation.setNote(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+            observation.setObservationTime(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+            observation.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+            observation.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+            observation.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+        }
+
+        cursor.close();
+
+        return observation;
+    }
+
+    public boolean updateObservation(Observation observation) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(OBSERVATION_TITLE, observation.getTitle());
+        values.put(OBSERVATION_NOTE, observation.getNote());
+        values.put(OBSERVATION_TIME, observation.getObservationTime());
+        values.put(OBSERVATION_UPDATED_AT, observation.getUpdatedAt());
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(observation.getId())}
+        );
+
+        return result > 0;
+    }
+
+    public boolean softDeleteObservation(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        values.put(OBSERVATION_DELETED_AT, now);
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)}
+        );
+
+        return result > 0;
+    }
+
+    public boolean restoreObservation(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.putNull(OBSERVATION_DELETED_AT);
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)}
+        );
+
+        return result > 0;
+    }
+
+    public boolean deleteObservationForever(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int result = db.delete(
+                TABLE_OBSERVATIONS,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)}
+        );
+
+        return result > 0;
+    }
+
+    public List<Observation> getDeletedObservations() {
+
+        List<Observation> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                null,
+                OBSERVATION_DELETED_AT + " IS NOT NULL",
+                null,
+                null,
+                null,
+                OBSERVATION_DELETED_AT + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Observation observation = new Observation();
+
+                observation.setId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+                observation.setHikeId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+                observation.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+                observation.setNote(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+                observation.setObservationTime(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+                observation.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+                observation.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+                observation.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+                list.add(observation);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
     }
 }

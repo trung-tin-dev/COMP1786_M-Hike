@@ -21,19 +21,12 @@
         android:layout_marginTop="10dp"
         android:text="example@gmail.com" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Trash"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        android:layout_marginTop="24dp"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvTrash"
+    <Button
+        android:id="@+id/btnTrash"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="false"/>
+        android:layout_marginTop="32dp"
+        android:text="Trash"/>
 
     <Button
         android:id="@+id/btnLogout"
