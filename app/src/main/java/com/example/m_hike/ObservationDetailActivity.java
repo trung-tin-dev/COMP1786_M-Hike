@@ -45,11 +45,6 @@ public class ObservationDetailActivity extends AppCompatActivity {
         loadObservation();
 
         btnUpdate.setOnClickListener(v -> {
-//            Toast.makeText(
-//                    this,
-//                    "Send ID = " + observationId,
-//                    Toast.LENGTH_LONG
-//            ).show();
 
             Intent intent = new Intent(
                     this,
