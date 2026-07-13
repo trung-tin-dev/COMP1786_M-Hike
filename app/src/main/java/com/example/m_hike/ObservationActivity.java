@@ -33,13 +33,11 @@ public class ObservationActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Toast.makeText(
-                this,
-                "Observation Activity",
-                Toast.LENGTH_SHORT
-        ).show();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_observation);
+
+        databaseHelper = new DatabaseHelper(this);
 
         rvObservation = findViewById(R.id.rvObservation);
 
