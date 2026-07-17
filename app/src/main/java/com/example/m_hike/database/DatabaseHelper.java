@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.example.m_hike.model.Observation;
+import com.example.m_hike.model.Photo;
 import com.example.m_hike.model.User;
 import com.example.m_hike.model.Hike;
 
@@ -56,6 +58,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String HIKE_UPDATED_AT = "updated_at";
     public static final String HIKE_DELETED_AT = "deleted_at";
 
+    //==========================
+    // Observation Table
+    //==========================
+
+    private static final String TABLE_OBSERVATIONS = "observations";
+
+    private static final String OBSERVATION_ID = "id";
+    private static final String OBSERVATION_HIKE_ID = "hike_id";
+
+    private static final String OBSERVATION_TITLE = "title";
+    private static final String OBSERVATION_NOTE = "note";
+    private static final String OBSERVATION_TIME = "observation_time";
+
+    private static final String OBSERVATION_CREATED_AT = "created_at";
+    private static final String OBSERVATION_UPDATED_AT = "updated_at";
+    private static final String OBSERVATION_DELETED_AT = "deleted_at";
+
+    //==========================
+    // Photo Table
+    //==========================
+
+    private static final String TABLE_PHOTOS = "photos";
+    private static final String PHOTO_ID = "id";
+    private static final String PHOTO_OBSERVATION_ID = "observation_id";
+    private static final String PHOTO_PATH = "photo_path";
+    private static final String PHOTO_CREATED_AT = "created_at";
+    private static final String PHOTO_DELETED_AT = "deleted_at";
+
     // Create Users Table
     private static final String CREATE_USERS_TABLE =
             "CREATE TABLE " + TABLE_USERS + " (" +
@@ -88,6 +118,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     HIKE_DELETED_AT + " TEXT" +
                     ");";
 
+    private static final String CREATE_OBSERVATION_TABLE =
+            "CREATE TABLE " + TABLE_OBSERVATIONS + " ("
+                    + OBSERVATION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + OBSERVATION_HIKE_ID + " INTEGER NOT NULL,"
+                    + OBSERVATION_TITLE + " TEXT NOT NULL,"
+                    + OBSERVATION_NOTE + " TEXT,"
+                    + OBSERVATION_TIME + " TEXT,"
+                    + OBSERVATION_CREATED_AT + " TEXT,"
+                    + OBSERVATION_UPDATED_AT + " TEXT,"
+                    + OBSERVATION_DELETED_AT + " TEXT,"
+                    + "FOREIGN KEY(" + OBSERVATION_HIKE_ID + ") REFERENCES "
+                    + TABLE_HIKES + "(" + HIKE_ID + ")"
+                    + ")";
+
+    private static final String CREATE_PHOTOS_TABLE =
+            "CREATE TABLE " + TABLE_PHOTOS + " ("
+                    + PHOTO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + PHOTO_OBSERVATION_ID + " INTEGER NOT NULL,"
+                    + PHOTO_PATH + " TEXT NOT NULL,"
+                    + PHOTO_CREATED_AT + " TEXT,"
+                    + PHOTO_DELETED_AT + " TEXT,"
+                    + "FOREIGN KEY("
+                    + PHOTO_OBSERVATION_ID
+                    + ") REFERENCES "
+                    + TABLE_OBSERVATIONS
+                    + "("
+                    + OBSERVATION_ID
+                    + ")"
+                    + ")";
+
     public DatabaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -98,11 +158,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_USERS_TABLE);
         // Create Hikes Table
         db.execSQL(CREATE_HIKES_TABLE);
+
+        db.execSQL(CREATE_OBSERVATION_TABLE);
+
+        db.execSQL(CREATE_PHOTOS_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTOS);
+
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
+
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
+
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
@@ -211,6 +280,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
+    public User getUserById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                null,
+                USER_ID + "=?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null
+        );
+
+        User user = null;
+        if (cursor.moveToFirst()) {
+            user = new User();
+            user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(USER_ID)));
+            user.setUserName(cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)));
+            user.setUserEmail(cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL)));
+            user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(USER_PASSWORD)));
+            user.setAvatarPath(cursor.getString(cursor.getColumnIndexOrThrow(USER_AVATAR)));
+            user.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(USER_CREATED_AT)));
+        }
+        cursor.close();
+        return user;
+    }
+
+    public boolean updateUserAvatar(int userId, String avatarPath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(USER_AVATAR, avatarPath);
+        int result = db.update(TABLE_USERS, values, USER_ID + "=?", new String[]{String.valueOf(userId)});
+        return result > 0;
+    }
+
     // ===========================
     // INSERT HIKE
     // ===========================
@@ -278,8 +381,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_HIKES,
                 null,
-                HIKE_STATUS + "=?",
-                new String[]{"ACTIVE"},
+                HIKE_USER_ID + "=? AND " +
+                        HIKE_STATUS + "=?",
+                new String[]{
+                        String.valueOf(userId),
+                        "ACTIVE"
+                },
                 null,
                 null,
                 HIKE_CREATED_AT + " DESC"
@@ -562,6 +669,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(hikeId)}
         );
 
+        if(result > 0){
+            softDeleteObservationsByHike(hikeId);
+        }
+
         return result > 0;
     }
 
@@ -581,26 +692,52 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 HIKE_ID + "=?",
                 new String[]{String.valueOf(hikeId)}
         );
+        if(result > 0){
+            restoreObservationsByHike(hikeId);
+        }
 
         return result > 0;
     }
 
 //    Delete forever
     public boolean deleteHikeForever(int hikeId) {
-
         SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            Cursor cursor = db.query(
+                    TABLE_OBSERVATIONS,
+                    new String[]{OBSERVATION_ID},
+                    OBSERVATION_HIKE_ID + "=?",
+                    new String[]{String.valueOf(hikeId)},
+                    null,
+                    null,
+                    null
+            );
 
-        int result = db.delete(
-                TABLE_HIKES,
-                HIKE_ID + "=?",
-                new String[]{String.valueOf(hikeId)}
-        );
+            while (cursor.moveToNext()) {
+                deleteObservationForever(cursor.getInt(0));
+            }
+            cursor.close();
 
-        return result > 0;
+            int result = db.delete(
+                    TABLE_HIKES,
+                    HIKE_ID + "=?",
+                    new String[]{String.valueOf(hikeId)}
+            );
+            if (result > 0) {
+                db.setTransactionSuccessful();
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+        return false;
     }
 
     // Get Delete Hike for Trash
-    public List<Hike> getDeletedHikes() {
+    public List<Hike> getDeletedHikes(int userId) {
 
         List<Hike> hikeList = new ArrayList<>();
 
@@ -609,8 +746,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_HIKES,
                 null,
-                HIKE_STATUS + "=?",
-                new String[]{"DELETED"},
+                HIKE_STATUS + "=? AND " + HIKE_USER_ID + "=?",
+                new String[]{"DELETED", String.valueOf(userId)},
                 null,
                 null,
                 HIKE_DELETED_AT + " DESC"
@@ -656,4 +793,622 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return hike;
     }
+
+    public boolean startHike(int hikeId, String startTime) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_START_TIME, startTime);
+        values.put(HIKE_STATUS, "ONGOING");
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+    public boolean finishHike(int hikeId, String endTime) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(HIKE_END_TIME, endTime);
+        values.put(HIKE_STATUS, "COMPLETED");
+
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+
+        return result > 0;
+    }
+
+    //==========================
+    // Insert Observation
+    //==========================
+    public long insertObservation(Observation observation) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(OBSERVATION_HIKE_ID, observation.getHikeId());
+
+        values.put(OBSERVATION_TITLE, observation.getTitle());
+
+        values.put(OBSERVATION_NOTE, observation.getNote());
+
+        values.put(OBSERVATION_TIME, observation.getObservationTime());
+
+        values.put(OBSERVATION_CREATED_AT, observation.getCreatedAt());
+
+        values.put(OBSERVATION_UPDATED_AT, observation.getUpdatedAt());
+
+        values.put(OBSERVATION_DELETED_AT, observation.getDeletedAt());
+
+        return db.insert(
+                TABLE_OBSERVATIONS,
+                null,
+                values
+        );
+    }
+
+    //==========================
+// Get Observations By Hike
+//==========================
+
+    public List<Observation> getObservationsByHikeId(int hikeId) {
+
+        List<Observation> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                null,
+                OBSERVATION_HIKE_ID + "=? AND " +
+                        OBSERVATION_DELETED_AT + " IS NULL",
+                new String[]{
+                        String.valueOf(hikeId)
+                },
+                null,
+                null,
+                OBSERVATION_TIME + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Observation observation = new Observation();
+
+                observation.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+
+                observation.setHikeId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+
+                observation.setTitle(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+
+                observation.setNote(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+
+                observation.setObservationTime(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+
+                observation.setCreatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+
+                observation.setUpdatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+
+                observation.setDeletedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+                list.add(observation);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
+    }
+
+
+    public Observation getObservationById(int id) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                null,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null
+        );
+
+        Observation observation = null;
+
+        if (cursor.moveToFirst()) {
+
+            observation = new Observation();
+
+            observation.setId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+            observation.setHikeId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+            observation.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+            observation.setNote(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+            observation.setObservationTime(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+            observation.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+            observation.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+            observation.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+        }
+
+        cursor.close();
+
+        return observation;
+    }
+
+    public boolean updateObservation(Observation observation) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(OBSERVATION_TITLE, observation.getTitle());
+        values.put(OBSERVATION_NOTE, observation.getNote());
+        values.put(OBSERVATION_TIME, observation.getObservationTime());
+        values.put(OBSERVATION_UPDATED_AT, observation.getUpdatedAt());
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(observation.getId())}
+        );
+
+        return result > 0;
+    }
+
+    public boolean softDeleteObservation(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        values.put(OBSERVATION_DELETED_AT, now);
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)}
+        );
+
+        if(result > 0){
+            softDeletePhotosByObservation(id);
+        }
+
+        return result > 0;
+    }
+
+    public boolean restoreObservation(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.putNull(OBSERVATION_DELETED_AT);
+
+        int result = db.update(
+                TABLE_OBSERVATIONS,
+                values,
+                OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(id)}
+        );
+
+        if(result > 0){
+            restorePhotosByObservation(id);
+        }
+
+        return result > 0;
+    }
+
+    private void softDeleteObservationsByHike(int hikeId){
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                new String[]{OBSERVATION_ID},
+                OBSERVATION_HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)},
+                null,
+                null,
+                null
+        );
+
+        while(cursor.moveToNext()){
+
+            int observationId = cursor.getInt(0);
+
+            softDeleteObservation(observationId);
+
+        }
+
+        cursor.close();
+    }
+
+    private void restoreObservationsByHike(int hikeId){
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_OBSERVATIONS,
+                new String[]{OBSERVATION_ID},
+                OBSERVATION_HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)},
+                null,
+                null,
+                null
+        );
+
+        while(cursor.moveToNext()){
+
+            restoreObservation(cursor.getInt(0));
+
+        }
+
+        cursor.close();
+    }
+
+    public boolean deleteObservationForever(int id) {
+
+        deletePhotosByObservationId(id);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int result = db.delete(
+                TABLE_OBSERVATIONS,
+                OBSERVATION_ID + "=?",
+                new String[]{
+                        String.valueOf(id)
+                }
+        );
+
+        return result > 0;
+    }
+
+    public List<Observation> getDeletedObservations(int userId) {
+
+        List<Observation> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT o.* FROM " + TABLE_OBSERVATIONS + " o " +
+                "JOIN " + TABLE_HIKES + " h ON o." + OBSERVATION_HIKE_ID + " = h." + HIKE_ID + " " +
+                "WHERE o." + OBSERVATION_DELETED_AT + " IS NOT NULL " +
+                "AND h." + HIKE_USER_ID + " = ? " +
+                "ORDER BY o." + OBSERVATION_DELETED_AT + " DESC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Observation observation = new Observation();
+
+                observation.setId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_ID)));
+                observation.setHikeId(cursor.getInt(cursor.getColumnIndexOrThrow(OBSERVATION_HIKE_ID)));
+                observation.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TITLE)));
+                observation.setNote(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_NOTE)));
+                observation.setObservationTime(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_TIME)));
+                observation.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_CREATED_AT)));
+                observation.setUpdatedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_UPDATED_AT)));
+                observation.setDeletedAt(cursor.getString(cursor.getColumnIndexOrThrow(OBSERVATION_DELETED_AT)));
+
+                list.add(observation);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
+    }
+
+    public boolean insertPhoto(Photo photo) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(
+                PHOTO_OBSERVATION_ID,
+                photo.getObservationId()
+        );
+
+        values.put(
+                PHOTO_PATH,
+                photo.getPhotoPath()
+        );
+
+        values.put(
+                PHOTO_CREATED_AT,
+                photo.getCreatedAt()
+        );
+
+        values.put(
+                PHOTO_DELETED_AT,
+                photo.getDeletedAt()
+        );
+
+        long result = db.insert(
+                TABLE_PHOTOS,
+                null,
+                values
+        );
+
+        return result != -1;
+    }
+
+    public List<Photo> getPhotosByObservationId(int observationId) {
+
+        List<Photo> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_PHOTOS,
+                null,
+                PHOTO_OBSERVATION_ID + "=? AND "
+                        + PHOTO_DELETED_AT + " IS NULL",
+                new String[]{
+                        String.valueOf(observationId)
+                },
+                null,
+                null,
+                PHOTO_CREATED_AT + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Photo photo = new Photo();
+
+                photo.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(PHOTO_ID)));
+
+                photo.setObservationId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_OBSERVATION_ID)));
+
+                photo.setPhotoPath(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_PATH)));
+
+                photo.setCreatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_CREATED_AT)));
+
+                photo.setDeletedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_DELETED_AT)));
+
+                list.add(photo);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
+    }
+
+    public boolean softDeletePhoto(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        values.put(
+                PHOTO_DELETED_AT,
+                now
+        );
+
+        int result = db.update(
+                TABLE_PHOTOS,
+                values,
+                PHOTO_ID + "=?",
+                new String[]{
+                        String.valueOf(id)
+                }
+        );
+
+        return result > 0;
+    }
+
+    public boolean restorePhoto(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.putNull(PHOTO_DELETED_AT);
+
+        int result = db.update(
+                TABLE_PHOTOS,
+                values,
+                PHOTO_ID + "=?",
+                new String[]{
+                        String.valueOf(id)
+                }
+        );
+
+        return result > 0;
+    }
+
+    public boolean deletePhotoForever(int id) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int result = db.delete(
+                TABLE_PHOTOS,
+                PHOTO_ID + "=?",
+                new String[]{
+                        String.valueOf(id)
+                });
+
+        return result > 0;
+    }
+
+    public List<Photo> getDeletedPhotos() {
+
+        List<Photo> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                TABLE_PHOTOS,
+                null,
+                PHOTO_DELETED_AT + " IS NOT NULL",
+                null,
+                null,
+                null,
+                PHOTO_DELETED_AT + " DESC"
+        );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Photo photo = new Photo();
+
+                photo.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(PHOTO_ID)));
+
+                photo.setObservationId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_OBSERVATION_ID)));
+
+                photo.setPhotoPath(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_PATH)));
+
+                photo.setCreatedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_CREATED_AT)));
+
+                photo.setDeletedAt(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        PHOTO_DELETED_AT)));
+
+                list.add(photo);
+
+            } while (cursor.moveToNext());
+
+        }
+
+        cursor.close();
+
+        return list;
+    }
+
+    public void deletePhotosByObservationId(int observationId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(
+                TABLE_PHOTOS,
+                PHOTO_OBSERVATION_ID + "=?",
+                new String[]{
+                        String.valueOf(observationId)
+                }
+        );
+    }
+
+    public void softDeletePhotosByObservation(int observationId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        String now = new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        values.put(PHOTO_DELETED_AT, now);
+
+        db.update(
+                TABLE_PHOTOS,
+                values,
+                PHOTO_OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(observationId)}
+        );
+    }
+
+    public void restorePhotosByObservation(int observationId) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.putNull(PHOTO_DELETED_AT);
+
+        db.update(
+                TABLE_PHOTOS,
+                values,
+                PHOTO_OBSERVATION_ID + "=?",
+                new String[]{String.valueOf(observationId)}
+        );
+    }
+
+
 }

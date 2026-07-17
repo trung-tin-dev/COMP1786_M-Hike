@@ -8,10 +8,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.m_hike.database.DatabaseHelper;
 import com.example.m_hike.model.User;
+import com.example.m_hike.utils.SecurityUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,6 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
 
         etUsername = findViewById(R.id.etRegisterUsername);
@@ -97,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
         User user = new User(
                 username,
                 email,
-                password,
+                SecurityUtils.hashPassword(password),
                 "",
                 createdAt
         );

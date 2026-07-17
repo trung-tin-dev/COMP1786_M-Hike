@@ -2,6 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Camera permission -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+
+    <!-- Android 13+ Gallery permission -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+
+    <!-- Camera is optional (avoid warning) -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +25,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MHike">
+
+        <provider
+
+            android:name="androidx.core.content.FileProvider"
+
+            android:authorities="${applicationId}.provider"
+
+            android:exported="false"
+
+            android:grantUriPermissions="true">
+
+
+            <meta-data
+
+                android:name="android.support.FILE_PROVIDER_PATHS"
+
+                android:resource="@xml/file_paths"/>
+
+
+        </provider>
+
+
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -30,6 +66,26 @@
             android:name=".HikeDetailActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ObservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".AddObservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ObservationDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".TrashActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".TrashHikeActivity"
+            android:exported="false"/>
+        <activity android:name=".TrashObservationActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>
