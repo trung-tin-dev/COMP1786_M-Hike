@@ -280,6 +280,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
+    public User getUserById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_USERS,
+                null,
+                USER_ID + "=?",
+                new String[]{String.valueOf(id)},
+                null,
+                null,
+                null
+        );
+
+        User user = null;
+        if (cursor.moveToFirst()) {
+            user = new User();
+            user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(USER_ID)));
+            user.setUserName(cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)));
+            user.setUserEmail(cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL)));
+            user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(USER_PASSWORD)));
+            user.setAvatarPath(cursor.getString(cursor.getColumnIndexOrThrow(USER_AVATAR)));
+            user.setCreatedAt(cursor.getString(cursor.getColumnIndexOrThrow(USER_CREATED_AT)));
+        }
+        cursor.close();
+        return user;
+    }
+
+    public boolean updateUserAvatar(int userId, String avatarPath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(USER_AVATAR, avatarPath);
+        int result = db.update(TABLE_USERS, values, USER_ID + "=?", new String[]{String.valueOf(userId)});
+        return result > 0;
+    }
+
     // ===========================
     // INSERT HIKE
     // ===========================
@@ -666,39 +700,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 //    Delete forever
-public boolean deleteHikeForever(int hikeId) {
+    public boolean deleteHikeForever(int hikeId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            Cursor cursor = db.query(
+                    TABLE_OBSERVATIONS,
+                    new String[]{OBSERVATION_ID},
+                    OBSERVATION_HIKE_ID + "=?",
+                    new String[]{String.valueOf(hikeId)},
+                    null,
+                    null,
+                    null
+            );
 
-    SQLiteDatabase db = this.getWritableDatabase();
+            while (cursor.moveToNext()) {
+                deleteObservationForever(cursor.getInt(0));
+            }
+            cursor.close();
 
-    Cursor cursor = db.query(
-            TABLE_OBSERVATIONS,
-            new String[]{OBSERVATION_ID},
-            OBSERVATION_HIKE_ID + "=?",
-            new String[]{String.valueOf(hikeId)},
-            null,
-            null,
-            null
-    );
-
-    while(cursor.moveToNext()){
-
-        deleteObservationForever(cursor.getInt(0));
-
+            int result = db.delete(
+                    TABLE_HIKES,
+                    HIKE_ID + "=?",
+                    new String[]{String.valueOf(hikeId)}
+            );
+            if (result > 0) {
+                db.setTransactionSuccessful();
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+        return false;
     }
 
-    cursor.close();
-
-    int result = db.delete(
-            TABLE_HIKES,
-            HIKE_ID + "=?",
-            new String[]{String.valueOf(hikeId)}
-    );
-
-    return result > 0;
-}
-
     // Get Delete Hike for Trash
-    public List<Hike> getDeletedHikes() {
+    public List<Hike> getDeletedHikes(int userId) {
 
         List<Hike> hikeList = new ArrayList<>();
 
@@ -707,8 +746,8 @@ public boolean deleteHikeForever(int hikeId) {
         Cursor cursor = db.query(
                 TABLE_HIKES,
                 null,
-                HIKE_STATUS + "=?",
-                new String[]{"DELETED"},
+                HIKE_STATUS + "=? AND " + HIKE_USER_ID + "=?",
+                new String[]{"DELETED", String.valueOf(userId)},
                 null,
                 null,
                 HIKE_DELETED_AT + " DESC"
@@ -796,7 +835,7 @@ public boolean deleteHikeForever(int hikeId) {
     //==========================
     // Insert Observation
     //==========================
-    public boolean insertObservation(Observation observation) {
+    public long insertObservation(Observation observation) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -816,13 +855,11 @@ public boolean deleteHikeForever(int hikeId) {
 
         values.put(OBSERVATION_DELETED_AT, observation.getDeletedAt());
 
-        long result = db.insert(
+        return db.insert(
                 TABLE_OBSERVATIONS,
                 null,
                 values
         );
-
-        return result != -1;
     }
 
     //==========================
@@ -1069,21 +1106,19 @@ public boolean deleteHikeForever(int hikeId) {
         return result > 0;
     }
 
-    public List<Observation> getDeletedObservations() {
+    public List<Observation> getDeletedObservations(int userId) {
 
         List<Observation> list = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(
-                TABLE_OBSERVATIONS,
-                null,
-                OBSERVATION_DELETED_AT + " IS NOT NULL",
-                null,
-                null,
-                null,
-                OBSERVATION_DELETED_AT + " DESC"
-        );
+        String query = "SELECT o.* FROM " + TABLE_OBSERVATIONS + " o " +
+                "JOIN " + TABLE_HIKES + " h ON o." + OBSERVATION_HIKE_ID + " = h." + HIKE_ID + " " +
+                "WHERE o." + OBSERVATION_DELETED_AT + " IS NOT NULL " +
+                "AND h." + HIKE_USER_ID + " = ? " +
+                "ORDER BY o." + OBSERVATION_DELETED_AT + " DESC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
 
         if (cursor.moveToFirst()) {
 

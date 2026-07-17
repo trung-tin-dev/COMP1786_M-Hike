@@ -1,6 +1,7 @@
 package com.example.m_hike.fragments;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,8 @@ import com.example.m_hike.model.Hike;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class HikeFragment extends Fragment {
 
@@ -74,8 +77,9 @@ public class HikeFragment extends Fragment {
     }
 
     private void loadHikes() {
-
-        List<Hike> hikeList = databaseHelper.getAllHikes();
+        SharedPreferences preferences = requireContext().getSharedPreferences("MHIKE", MODE_PRIVATE);
+        int userId = preferences.getInt("userId", -1);
+        List<Hike> hikeList = databaseHelper.getAllHikes(userId);
 
         adapter = new HikeAdapter(
                 hikeList,

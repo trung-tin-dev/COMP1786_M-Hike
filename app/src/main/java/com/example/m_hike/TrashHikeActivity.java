@@ -1,7 +1,10 @@
 package com.example.m_hike;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +24,7 @@ public class TrashHikeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_trash_hike);
 
         setTitle("Deleted Hikes");
@@ -36,9 +40,11 @@ public class TrashHikeActivity extends AppCompatActivity {
     }
 
     private void loadData(){
+        SharedPreferences preferences = getSharedPreferences("MHIKE", Context.MODE_PRIVATE);
+        int userId = preferences.getInt("userId", -1);
 
         List<Hike> list =
-                databaseHelper.getDeletedHikes();
+                databaseHelper.getDeletedHikes(userId);
 
         TrashHikeAdapter adapter =
                 new TrashHikeAdapter(list,

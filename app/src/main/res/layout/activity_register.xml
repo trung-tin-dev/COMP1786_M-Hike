@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true"
+    android:fitsSystemWindows="true"
     android:background="@color/bg">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -89,21 +90,11 @@
                     android:layout_marginBottom="5dp"
                     android:textColor="@color/text_green"
                     />
-<!--                <EditText-->
-<!--                    android:id="@+id/etRegisterPassword"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="50dp"-->
-<!--                    android:background="@drawable/edittext_selector"-->
-<!--                    android:hint="e.g. iloveTravel@"-->
-<!--                    android:textSize="15sp"-->
-<!--                    android:inputType="textPassword"-->
-<!--                    android:paddingLeft="20dp"-->
-<!--                    android:paddingRight="20dp"-->
-<!--                    android:layout_marginBottom="16dp"/>-->
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:hintEnabled="false"
                     app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText

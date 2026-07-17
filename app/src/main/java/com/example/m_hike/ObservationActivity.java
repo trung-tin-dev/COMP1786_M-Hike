@@ -2,7 +2,6 @@ package com.example.m_hike;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.m_hike.adapter.ObservationAdapter;
 import com.example.m_hike.database.DatabaseHelper;
 import com.example.m_hike.model.Observation;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class ObservationActivity extends AppCompatActivity {
 
     private RecyclerView rvObservation;
 
-    private Button btnAddObservation;
+    private FloatingActionButton btnAddObservation;
 
     private DatabaseHelper databaseHelper;
 
@@ -35,6 +35,7 @@ public class ObservationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_observation);
 
         databaseHelper = new DatabaseHelper(this);
@@ -57,7 +58,6 @@ public class ObservationActivity extends AppCompatActivity {
             startActivity(intent);
 
         });
-        databaseHelper = new DatabaseHelper(this);
 
         rvObservation.setLayoutManager(
                 new LinearLayoutManager(this));

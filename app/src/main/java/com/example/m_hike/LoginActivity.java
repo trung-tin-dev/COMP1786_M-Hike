@@ -10,9 +10,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.m_hike.database.DatabaseHelper;
+import com.example.m_hike.utils.SecurityUtils;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -28,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         SharedPreferences preferences =
                 getSharedPreferences("MHIKE", MODE_PRIVATE);
 
@@ -87,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        boolean success = databaseHelper.checkLogin(email, password);
+        boolean success = databaseHelper.checkLogin(email, SecurityUtils.hashPassword(password));
 
         if (success) {
 

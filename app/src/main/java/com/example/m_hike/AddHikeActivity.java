@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.m_hike.database.DatabaseHelper;
@@ -43,6 +44,7 @@ public class AddHikeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_hike);
 
         //=========================
@@ -191,7 +193,14 @@ public class AddHikeActivity extends AppCompatActivity {
 
         }
 
-        double length = Double.parseDouble(lengthText);
+        double length;
+        try {
+            length = Double.parseDouble(lengthText);
+        } catch (NumberFormatException e) {
+            etLength.setError("Invalid number");
+            etLength.requestFocus();
+            return;
+        }
 
         double minutesPerKm;
 
@@ -313,7 +322,13 @@ public class AddHikeActivity extends AppCompatActivity {
 
         hike.setParkingAvailable(parking);
 
-        hike.setLength(Double.parseDouble(length));
+        try {
+            hike.setLength(Double.parseDouble(length));
+        } catch (NumberFormatException e) {
+            etLength.setError("Invalid length");
+            etLength.requestFocus();
+            return;
+        }
 
         hike.setDifficulty(difficulty);
 
