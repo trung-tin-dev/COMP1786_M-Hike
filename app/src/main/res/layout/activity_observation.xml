@@ -1,39 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg"
     android:fitsSystemWindows="true"
-    android:background="@color/bg">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        app:navigationIcon="@drawable/ic_previous"
+        app:title="Observations"
+        app:titleTextColor="@color/text_green" />
 
-        <TextView
-            style="@style/ScreenTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="Observations" />
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvObservation"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="8dp" />
-    </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnAddObservation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="20dp"
-        android:backgroundTint="@color/btn"
-        android:contentDescription="Add Observation"
-        android:src="@android:drawable/ic_input_add"
-        app:tint="@color/white" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddObservation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="20dp"
+            android:backgroundTint="@color/btn"
+            android:contentDescription="Add Observation"
+            android:src="@android:drawable/ic_input_add"
+            app:tint="@color/white" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</LinearLayout>

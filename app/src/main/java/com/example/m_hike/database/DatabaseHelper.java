@@ -382,10 +382,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 TABLE_HIKES,
                 null,
                 HIKE_USER_ID + "=? AND " +
-                        HIKE_STATUS + "=?",
+                        HIKE_STATUS + "!=?",
                 new String[]{
                         String.valueOf(userId),
-                        "ACTIVE"
+                        "DELETED"
                 },
                 null,
                 null,
@@ -480,8 +480,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 TABLE_HIKES,
                 null,
-                HIKE_STATUS + "=?",
-                new String[]{"ACTIVE"},
+                HIKE_STATUS + "!=?",
+                new String[]{"DELETED"},
                 null,
                 null,
                 HIKE_CREATED_AT + " DESC"

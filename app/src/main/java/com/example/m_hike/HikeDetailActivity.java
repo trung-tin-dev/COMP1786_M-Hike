@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
@@ -50,6 +51,23 @@ public class HikeDetailActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_hike_detail);
 
+        // 1. Ánh xạ Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        // 2. Thiết lập Toolbar làm ActionBar cho Activity
+        setSupportActionBar(toolbar);
+
+        // 3. Kích hoạt nút quay lại (mũi tên)
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false); // Ẩn title mặc định nếu bạn muốn dùng TextView tvName riêng
+        }
+
+        // 4. Xử lý sự kiện nhấn vào nút quay lại
+        toolbar.setNavigationOnClickListener(v -> {
+            onBackPressed(); // Hoặc finish();
+        });
+
         tvName = findViewById(R.id.tvName);
         tvLocation = findViewById(R.id.tvLocation);
         tvDate = findViewById(R.id.tvDate);
@@ -62,7 +80,6 @@ public class HikeDetailActivity extends AppCompatActivity {
         tvStartTime = findViewById(R.id.tvStartTime);
         tvEndTime = findViewById(R.id.tvEndTime);
         tvActualDuration = findViewById(R.id.tvActualDuration);
-
 
         btnStart = findViewById(R.id.btnStart);
         btnFinish = findViewById(R.id.btnFinish);
@@ -99,9 +116,9 @@ public class HikeDetailActivity extends AppCompatActivity {
 
         btnUpdate.setOnClickListener(v -> {
 
-            Toast.makeText(this,
-                    "HIKE ID = " + hikeId,
-                    Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this,
+//                    "HIKE ID = " + hikeId,
+//                    Toast.LENGTH_SHORT).show();
 
 
             Intent intent = new Intent(
