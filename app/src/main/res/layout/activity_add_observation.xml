@@ -36,6 +36,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Title"
+                    app:startIconDrawable="@drawable/ic_observation"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -49,6 +50,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Time"
+                    app:startIconDrawable="@drawable/ic_calendar"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -62,6 +64,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:hint="Note"
+                    app:startIconDrawable="@drawable/ic_edit"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -95,6 +98,7 @@
                     android:layout_marginTop="8dp"
                     android:text="ADD PHOTO"
                     android:textColor="@color/btn"
+                    app:icon="@drawable/ic_image"
                     app:strokeColor="@color/btn" />
 
                 <Button
@@ -103,7 +107,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="SAVE OBSERVATION" />
+                    android:text="SAVE OBSERVATION"
+                    app:icon="@drawable/ic_observation"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -85,6 +85,7 @@
                         android:layout_marginTop="16dp"
                         android:text="ADD PHOTO"
                         android:textColor="@color/btn"
+                        app:icon="@drawable/ic_image"
                         app:strokeColor="@color/btn" />
 
                 </LinearLayout>
@@ -101,7 +102,10 @@
                     style="@style/MainButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="EDIT OBSERVATION" />
+                    android:text="EDIT OBSERVATION"
+                    app:icon="@drawable/ic_edit"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp" />
 
                 <Button
                     android:id="@+id/btnDelete"
@@ -111,6 +115,10 @@
                     android:layout_marginTop="12dp"
                     android:text="DELETE OBSERVATION"
                     android:textColor="@color/danger"
+                    app:icon="@drawable/ic_delete"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconTint="@color/danger"
                     app:strokeColor="@color/danger" />
             </LinearLayout>
 

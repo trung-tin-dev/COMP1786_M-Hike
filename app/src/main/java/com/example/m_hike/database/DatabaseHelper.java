@@ -832,6 +832,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result > 0;
     }
 
+    public boolean resetHike(int hikeId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.putNull(HIKE_START_TIME);
+        values.putNull(HIKE_END_TIME);
+        values.put(HIKE_STATUS, "ACTIVE");
+        
+        int result = db.update(
+                TABLE_HIKES,
+                values,
+                HIKE_ID + "=?",
+                new String[]{String.valueOf(hikeId)}
+        );
+        return result > 0;
+    }
+
     //==========================
     // Insert Observation
     //==========================

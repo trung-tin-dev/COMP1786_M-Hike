@@ -34,7 +34,7 @@
             android:layout_margin="20dp"
             android:backgroundTint="@color/btn"
             android:contentDescription="Add Observation"
-            android:src="@android:drawable/ic_input_add"
+            android:src="@drawable/ic_observation"
             app:tint="@color/white" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
