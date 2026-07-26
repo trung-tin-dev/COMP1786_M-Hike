@@ -2,6 +2,9 @@ package com.example.m_hike;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +39,7 @@ public class HikeDetailActivity extends AppCompatActivity {
 
     private Button btnStart;
     private Button btnFinish;
+    private Button btnReset;
 
     private Button btnUpdate;
     private Button btnDelete;
@@ -44,6 +48,9 @@ public class HikeDetailActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
 
     private int hikeId;
+
+    private final Handler timerHandler = new Handler(Looper.getMainLooper());
+    private Runnable timerRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,11 +90,13 @@ public class HikeDetailActivity extends AppCompatActivity {
 
         btnStart = findViewById(R.id.btnStart);
         btnFinish = findViewById(R.id.btnFinish);
+        btnReset = findViewById(R.id.btnReset);
 
         btnUpdate = findViewById(R.id.btnUpdate);
         btnDelete = findViewById(R.id.btnDelete);
         btnStart.setOnClickListener(v -> startHike());
         btnFinish.setOnClickListener(v -> finishHike());
+        btnReset.setOnClickListener(v -> resetHike());
         btnObservation = findViewById(R.id.btnObservation);
 
         databaseHelper = new DatabaseHelper(this);
@@ -115,11 +124,6 @@ public class HikeDetailActivity extends AppCompatActivity {
         });
 
         btnUpdate.setOnClickListener(v -> {
-
-//            Toast.makeText(this,
-//                    "HIKE ID = " + hikeId,
-//                    Toast.LENGTH_SHORT).show();
-
 
             Intent intent = new Intent(
                     HikeDetailActivity.this,
@@ -175,67 +179,128 @@ public class HikeDetailActivity extends AppCompatActivity {
 
         tvName.setText(hike.getName());
 
-        tvLocation.setText("📍 Location: " + hike.getLocation());
+        tvLocation.setText("Location: " + hike.getLocation());
 
-        tvDate.setText("📅 Date: " + hike.getDate());
+        tvDate.setText("Date: " + hike.getDate());
 
         tvParking.setText(
-                "🚗 Parking: " +
+                "Parking: " +
                         (hike.isParkingAvailable() ? "Yes" : "No")
         );
 
         tvLength.setText(
-                "📏 Length: " +
+                "Length: " +
                         hike.getLength() +
                         " km"
         );
 
         tvDifficulty.setText(
-                "🎯 Difficulty: " +
+                "Difficulty: " +
                         hike.getDifficulty()
         );
 
+        // Set difficulty color
+        int color;
+        switch (hike.getDifficulty()) {
+            case "Easy":
+                color = getResources().getColor(R.color.success, null);
+                break;
+            case "Medium":
+                color = getResources().getColor(R.color.warning, null);
+                break;
+            case "Hard":
+                color = getResources().getColor(R.color.danger, null);
+                break;
+            default:
+                color = getResources().getColor(R.color.text_green, null);
+                break;
+        }
+        tvDifficulty.setTextColor(color);
+
         tvDuration.setText(
-                "⏱ Estimated Duration: " +
+                "Estimated Duration: " +
                         hike.getEstimatedDuration()
         );
 
-        tvStatus.setText(
-                "📌 Status: " + hike.getStatus()
-        );
+        tvStatus.setText("Status: " + hike.getStatus());
+
+        // Manage Buttons and Timer based on Status
+        stopTimer();
+        if ("ONGOING".equals(hike.getStatus())) {
+            btnStart.setVisibility(View.GONE);
+            btnFinish.setVisibility(View.VISIBLE);
+            btnReset.setVisibility(View.VISIBLE);
+            startTimer();
+        } else if ("COMPLETED".equals(hike.getStatus())) {
+            btnStart.setVisibility(View.GONE);
+            btnFinish.setVisibility(View.GONE);
+            btnReset.setVisibility(View.VISIBLE);
+        } else {
+            btnStart.setVisibility(View.VISIBLE);
+            btnFinish.setVisibility(View.GONE);
+            btnReset.setVisibility(View.GONE);
+        }
 
         tvStartTime.setText(
-                "▶ Start: " +
+                "Start: " +
                         (hike.getStartTime() == null ? "-" : hike.getStartTime())
         );
 
         tvEndTime.setText(
-                "■ Finish: " +
+                "Finish: " +
                         (hike.getEndTime() == null ? "-" : hike.getEndTime())
         );
 
-        if (hike.getStartTime() == null ||
-                hike.getEndTime() == null) {
-
-            tvActualDuration.setText(
-                    "⏳ Actual Duration: -"
-            );
-
+        if (hike.getStartTime() == null) {
+            tvActualDuration.setText("Actual Duration: -");
+        } else if (hike.getEndTime() == null) {
+            // Hike is ONGOING, calculate duration until NOW
+            String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            tvActualDuration.setText("Actual Duration: " + calculateDuration(hike.getStartTime(), now));
         } else {
-
-            tvActualDuration.setText(
-                    "⏳ Actual Duration: " +
-                            calculateDuration(
-                                    hike.getStartTime(),
-                                    hike.getEndTime()
-                            )
-            );
-
+            // Hike is COMPLETED
+            tvActualDuration.setText("Actual Duration: " + calculateDuration(hike.getStartTime(), hike.getEndTime()));
         }
+
         tvDescription.setText(
-                "📝 Description:\n" +
+                "Description:\n" +
                         hike.getDescription()
         );
+    }
+
+    private void startTimer() {
+        if (timerRunnable != null) return;
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Hike hike = databaseHelper.getHikeById(hikeId);
+                if (hike != null && "ONGOING".equals(hike.getStatus())) {
+                    String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                    tvActualDuration.setText("Actual Duration: " + calculateDuration(hike.getStartTime(), now));
+                    timerHandler.postDelayed(this, 1000);
+                }
+            }
+        };
+        timerHandler.post(timerRunnable);
+    }
+
+    private void stopTimer() {
+        if (timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+            timerRunnable = null;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopTimer();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopTimer();
     }
 
     private void startHike() {
@@ -288,6 +353,21 @@ public class HikeDetailActivity extends AppCompatActivity {
         }
     }
 
+    private void resetHike() {
+        new AlertDialog.Builder(this)
+                .setTitle("Reset Time")
+                .setMessage("Are you sure you want to reset the start and finish times?")
+                .setPositiveButton("Reset", (dialog, which) -> {
+                    boolean success = databaseHelper.resetHike(hikeId);
+                    if (success) {
+                        Toast.makeText(this, "Hike time reset", Toast.LENGTH_SHORT).show();
+                        loadHike();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private String calculateDuration(String start, String end) {
 
         try {
@@ -306,19 +386,19 @@ public class HikeDetailActivity extends AppCompatActivity {
                     endDate.getTime() -
                             startDate.getTime();
 
-            long totalMinutes =
-                    diff / (1000 * 60);
+            long totalSeconds = diff / 1000;
 
-            long hours =
-                    totalMinutes / 60;
+            long hours = totalSeconds / 3600;
 
-            long minutes =
-                    totalMinutes % 60;
+            long minutes = (totalSeconds % 3600) / 60;
 
-            return hours +
-                    " hour " +
-                    minutes +
-                    " min";
+            long seconds = totalSeconds % 60;
+
+            if (hours > 0) {
+                return String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds);
+            } else {
+                return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+            }
 
         } catch (ParseException e) {
 

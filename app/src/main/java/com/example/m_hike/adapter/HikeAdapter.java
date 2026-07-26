@@ -19,8 +19,13 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
         void onItemClick(Hike hike);
     }
 
-    private final List<Hike> hikeList;
+    private List<Hike> hikeList;
     private OnItemClickListener listener;
+
+    public void updateList(List<Hike> newList) {
+        this.hikeList = newList;
+        notifyDataSetChanged();
+    }
     public HikeAdapter(List<Hike> hikeList,
                        OnItemClickListener listener) {
 
@@ -49,6 +54,24 @@ public class HikeAdapter extends RecyclerView.Adapter<HikeAdapter.HikeViewHolder
         holder.tvLocation.setText(hike.getLocation());
         holder.tvDate.setText(hike.getDate());
         holder.tvDifficulty.setText(hike.getDifficulty());
+
+        // Set difficulty color
+        int color;
+        switch (hike.getDifficulty()) {
+            case "Easy":
+                color = holder.itemView.getContext().getResources().getColor(R.color.success, null);
+                break;
+            case "Medium":
+                color = holder.itemView.getContext().getResources().getColor(R.color.warning, null);
+                break;
+            case "Hard":
+                color = holder.itemView.getContext().getResources().getColor(R.color.danger, null);
+                break;
+            default:
+                color = holder.itemView.getContext().getResources().getColor(R.color.text_green, null);
+                break;
+        }
+        holder.tvDifficulty.setTextColor(color);
         holder.itemView.setOnClickListener(v -> {
 
             listener.onItemClick(hike);

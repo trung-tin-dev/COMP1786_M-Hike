@@ -43,7 +43,7 @@
                     android:padding="16dp"
                     android:text="Deleted Hikes"
                     android:textColor="@color/text_green"
-                    app:icon="@android:drawable/ic_menu_directions"
+                    app:icon="@drawable/ic_hike"
                     app:iconTint="@color/btn" />
 
                 <View
@@ -60,7 +60,7 @@
                     android:padding="16dp"
                     android:text="Deleted Observations"
                     android:textColor="@color/text_green"
-                    app:icon="@android:drawable/ic_menu_agenda"
+                    app:icon="@drawable/ic_observation"
                     app:iconTint="@color/btn" />
 
             </LinearLayout>
