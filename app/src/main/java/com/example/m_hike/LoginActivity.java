@@ -21,10 +21,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etEmail;
     private EditText etPassword;
     private CheckBox cbRememberMe;
-
     private Button btnLogin;
     private TextView tvGoToRegister;
-
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -48,26 +46,18 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_login);
-
         etEmail = findViewById(R.id.etLoginEmail);
         etPassword = findViewById(R.id.etLoginPassword);
         cbRememberMe = findViewById(R.id.cbRememberMe);
-
         btnLogin = findViewById(R.id.btnLogin);
         tvGoToRegister = findViewById(R.id.tvGoToRegister);
-
         databaseHelper = new DatabaseHelper(this);
-
         btnLogin.setOnClickListener(v -> login());
-
         tvGoToRegister.setOnClickListener(v -> {
-
             startActivity(new Intent(
                     LoginActivity.this,
                     RegisterActivity.class));
-
         });
-
     }
 
     private void login() {
@@ -124,9 +114,6 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this,
                     "Invalid email or password",
                     Toast.LENGTH_SHORT).show();
-
         }
-
     }
-
 }

@@ -24,39 +24,26 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNavigation =
-                findViewById(R.id.bottomNavigation);
+        BottomNavigationView bottomNavigation = findViewById(R.id.bottomNavigation);
         replaceFragment(new HomeFragment());
 
         bottomNavigation.setOnItemSelectedListener(item -> {
 
             if (item.getItemId() == R.id.nav_home) {
-
                 replaceFragment(new HomeFragment());
-
             } else if (item.getItemId() == R.id.nav_hike) {
-
                 replaceFragment(new HikeFragment());
-
             } else if (item.getItemId() == R.id.nav_profile) {
-
                 replaceFragment(new ProfileFragment());
-
             }
-
             return true;
-
         });
     }
 
     private void replaceFragment(Fragment fragment) {
-
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
-
     }
-
-
 }
