@@ -23,13 +23,9 @@ import java.util.List;
 public class ObservationActivity extends AppCompatActivity {
 
     private RecyclerView rvObservation;
-
     private FloatingActionButton btnAddObservation;
-
     private DatabaseHelper databaseHelper;
-
     private ObservationAdapter adapter;
-
     private int hikeId;
 
     @Override
@@ -48,32 +44,25 @@ public class ObservationActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
         databaseHelper = new DatabaseHelper(this);
-
         rvObservation = findViewById(R.id.rvObservation);
-
         btnAddObservation = findViewById(R.id.btnAddObservation);
+
         btnAddObservation.setOnClickListener(v -> {
 
             Intent intent = new Intent(
                     ObservationActivity.this,
                     AddObservationActivity.class
             );
-
             intent.putExtra(
                     "HIKE_ID",
                     hikeId
             );
-
             startActivity(intent);
-
         });
 
-        rvObservation.setLayoutManager(
-                new LinearLayoutManager(this));
+        rvObservation.setLayoutManager(new LinearLayoutManager(this));
 
-        hikeId = getIntent().getIntExtra(
-                "HIKE_ID",
-                -1);
+        hikeId = getIntent().getIntExtra("HIKE_ID", -1);
 
         loadObservations();
     }

@@ -121,7 +121,7 @@ public class HomeFragment extends Fragment {
         List<Hike> allHikes = databaseHelper.getAllHikes(userId);
         
         if (allHikes != null && !allHikes.isEmpty()) {
-            Hike latest = allHikes.get(0); // List is sorted by created_at DESC
+            Hike latest = allHikes.get(0);
             
             binding.tvNoHikes.setVisibility(View.GONE);
             binding.layoutLatestHikeInfo.setVisibility(View.VISIBLE);

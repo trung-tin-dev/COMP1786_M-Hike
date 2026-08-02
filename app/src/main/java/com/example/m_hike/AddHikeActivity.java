@@ -24,8 +24,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-
-
 public class AddHikeActivity extends AppCompatActivity {
 
     private TextInputEditText etHikeName;
@@ -47,24 +45,17 @@ public class AddHikeActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_hike);
 
-        //=========================
-        // Find Views
-        //=========================
-
         etHikeName = findViewById(R.id.etHikeName);
         etLocation = findViewById(R.id.etLocation);
         etDate = findViewById(R.id.etDate);
         etLength = findViewById(R.id.etLength);
         etDescription = findViewById(R.id.etDescription);
-
         tvEstimatedDuration = findViewById(R.id.tvEstimatedDuration);
-
         actDifficulty = findViewById(R.id.actDifficulty);
-
         swParking = findViewById(R.id.swParking);
-
         btnSave = findViewById(R.id.btnSave);
         databaseHelper = new DatabaseHelper(this);
+
         hikeId = getIntent().getIntExtra("HIKE_ID", -1);
 
         if (hikeId != -1) {
@@ -75,48 +66,21 @@ public class AddHikeActivity extends AppCompatActivity {
 
             btnSave.setText("UPDATE");
         }
-
-        //=========================
-        // Date Picker
-        //=========================
-
         etDate.setOnClickListener(v -> showDatePicker());
-
-        //=========================
-        // Difficulty Dropdown
-        //=========================
-
         ArrayAdapter<CharSequence> adapter =
                 ArrayAdapter.createFromResource(
                         this,
                         R.array.difficulty_array,
                         android.R.layout.simple_dropdown_item_1line
                 );
-
         actDifficulty.setAdapter(adapter);
-
-        actDifficulty.setOnClickListener(v ->
-                actDifficulty.showDropDown());
-
-        //=========================
-        // Estimated Duration
-        //=========================
-
+        actDifficulty.setOnClickListener(v -> actDifficulty.showDropDown());
+        actDifficulty.setOnItemClickListener((parent, view, position, id) -> {updateEstimatedDuration();});
         etLength.addTextChangedListener(textWatcher);
-
-        actDifficulty.setOnItemClickListener((parent, view, position, id) -> {
-            updateEstimatedDuration();
-        });
-
         btnSave.setOnClickListener(v -> saveHike());
     }
 
-    //=========================
-    // Date Picker
-    //=========================
-
     private void showDatePicker() {
-
         Calendar calendar = Calendar.getInstance();
 
         int year = calendar.get(Calendar.YEAR);
@@ -131,20 +95,13 @@ public class AddHikeActivity extends AppCompatActivity {
                             String date = d + "/" + (m + 1) + "/" + y;
 
                             etDate.setText(date);
-
                         },
                         year,
                         month,
                         day
                 );
-
         dialog.show();
-
     }
-
-    //=========================
-    // Watch Length
-    //=========================
 
     private final TextWatcher textWatcher = new TextWatcher() {
 
@@ -163,34 +120,24 @@ public class AddHikeActivity extends AppCompatActivity {
                                   int count) {
 
             updateEstimatedDuration();
-
         }
 
         @Override
         public void afterTextChanged(Editable s) {
-
         }
-
     };
-
-    //=========================
-    // Calculate Duration
-    //=========================
 
     private void updateEstimatedDuration() {
 
-        String lengthText =
-                etLength.getText().toString().trim();
+        String lengthText = etLength.getText().toString().trim();
 
-        String difficulty =
-                actDifficulty.getText().toString().trim();
+        String difficulty = actDifficulty.getText().toString().trim();
 
         if (lengthText.isEmpty() || difficulty.isEmpty()) {
 
             tvEstimatedDuration.setText("About 0 hour");
 
             return;
-
         }
 
         double length;
@@ -217,7 +164,6 @@ public class AddHikeActivity extends AppCompatActivity {
             default:
                 minutesPerKm = 60;
                 break;
-
         }
 
         int totalMinutes = (int) (length * minutesPerKm);
@@ -235,11 +181,9 @@ public class AddHikeActivity extends AppCompatActivity {
         } else {
 
             result = "About " + hours + " hour " + minutes + " min";
-
         }
 
         tvEstimatedDuration.setText(result);
-
     }
 
     private void saveHike() {
@@ -253,16 +197,11 @@ public class AddHikeActivity extends AppCompatActivity {
 
         boolean parking = swParking.isChecked();
 
-        //=========================
-        // Validation
-        //=========================
-
         if (hikeName.isEmpty()) {
 
             etHikeName.setError("Please enter hike name");
             etHikeName.requestFocus();
             return;
-
         }
 
         if (location.isEmpty()) {
@@ -270,7 +209,6 @@ public class AddHikeActivity extends AppCompatActivity {
             etLocation.setError("Please enter location");
             etLocation.requestFocus();
             return;
-
         }
 
         if (date.isEmpty()) {
@@ -280,7 +218,6 @@ public class AddHikeActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
 
             return;
-
         }
 
         if (length.isEmpty()) {
@@ -288,7 +225,6 @@ public class AddHikeActivity extends AppCompatActivity {
             etLength.setError("Please enter hike length");
             etLength.requestFocus();
             return;
-
         }
 
         if (difficulty.isEmpty()) {
@@ -296,16 +232,10 @@ public class AddHikeActivity extends AppCompatActivity {
             actDifficulty.setError("Select difficulty");
             actDifficulty.requestFocus();
             return;
-
         }
-
-        //=========================
-        // Create Hike
-        //=========================
 
         Hike hike = new Hike();
 
-//        hike.setUserId(1);
         SharedPreferences preferences =
                 getSharedPreferences("MHIKE", MODE_PRIVATE);
 
@@ -313,13 +243,9 @@ public class AddHikeActivity extends AppCompatActivity {
                 preferences.getInt("userId", -1);
 
         hike.setUserId(userId);
-
         hike.setName(hikeName);
-
         hike.setLocation(location);
-
         hike.setDate(date);
-
         hike.setParkingAvailable(parking);
 
         try {
@@ -331,11 +257,8 @@ public class AddHikeActivity extends AppCompatActivity {
         }
 
         hike.setDifficulty(difficulty);
-
         hike.setEstimatedDuration(duration);
-
         hike.setDescription(description);
-
         hike.setStatus("ACTIVE");
 
         String now = new SimpleDateFormat(
@@ -344,27 +267,18 @@ public class AddHikeActivity extends AppCompatActivity {
                 .format(new Date());
 
         hike.setCreatedAt(now);
-
         hike.setUpdatedAt(now);
-
         hike.setDeletedAt(null);
 
         boolean success;
-
         if (isEdit) {
-
             hike.setId(hikeId);
-
             success = databaseHelper.updateHike(hike);
-
         } else {
 
             success = databaseHelper.insertHike(hike);
-
         }
-
         if (success) {
-
             Toast.makeText(
                     this,
                     isEdit
@@ -372,11 +286,8 @@ public class AddHikeActivity extends AppCompatActivity {
                             : "Hike added successfully",
                     Toast.LENGTH_SHORT
             ).show();
-
             finish();
-
         } else {
-
             Toast.makeText(
                     this,
                     "Add hike failed",
@@ -385,8 +296,6 @@ public class AddHikeActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void loadHike() {
 
         Hike hike = databaseHelper.getHikeById(hikeId);
@@ -394,28 +303,12 @@ public class AddHikeActivity extends AppCompatActivity {
         if (hike == null) return;
 
         etHikeName.setText(hike.getName());
-
         etLocation.setText(hike.getLocation());
-
         etDate.setText(hike.getDate());
-
         etLength.setText(String.valueOf(hike.getLength()));
-
-        actDifficulty.setText(
-                hike.getDifficulty(),
-                false
-        );
-
-        tvEstimatedDuration.setText(
-                hike.getEstimatedDuration()
-        );
-
-        etDescription.setText(
-                hike.getDescription()
-        );
-
-        swParking.setChecked(
-                hike.isParkingAvailable()
-        );
+        actDifficulty.setText(hike.getDifficulty(), false);
+        tvEstimatedDuration.setText(hike.getEstimatedDuration());
+        etDescription.setText(hike.getDescription());
+        swParking.setChecked(hike.isParkingAvailable());
     }
 }

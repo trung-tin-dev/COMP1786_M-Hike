@@ -24,10 +24,8 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText etUsername;
     private EditText etEmail;
     private EditText etPassword;
-
     private Button btnSignUp;
     private TextView tvGoToLogin;
-
     private DatabaseHelper databaseHelper;
 
     @Override
@@ -39,19 +37,14 @@ public class RegisterActivity extends AppCompatActivity {
         etUsername = findViewById(R.id.etRegisterUsername);
         etEmail = findViewById(R.id.etRegisterEmail);
         etPassword = findViewById(R.id.etRegisterPassword);
-
         btnSignUp = findViewById(R.id.btnSignUp);
         tvGoToLogin = findViewById(R.id.tvGoToLogin);
-
         databaseHelper = new DatabaseHelper(this);
-
         btnSignUp.setOnClickListener(v -> registerUser());
-
         tvGoToLogin.setOnClickListener(v -> {
             startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
             finish();
         });
-
     }
 
     private void registerUser() {
@@ -125,9 +118,6 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this,
                     "Register Failed",
                     Toast.LENGTH_SHORT).show();
-
         }
-
     }
-
 }

@@ -36,19 +36,14 @@ public class HikeDetailActivity extends AppCompatActivity {
     private TextView tvStartTime;
     private TextView tvEndTime;
     private TextView tvActualDuration;
-
     private Button btnStart;
     private Button btnFinish;
     private Button btnReset;
-
     private Button btnUpdate;
     private Button btnDelete;
     private Button btnObservation;
-
     private DatabaseHelper databaseHelper;
-
     private int hikeId;
-
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private Runnable timerRunnable;
 
@@ -58,21 +53,16 @@ public class HikeDetailActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_hike_detail);
 
-        // 1. Ánh xạ Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
-
-        // 2. Thiết lập Toolbar làm ActionBar cho Activity
         setSupportActionBar(toolbar);
 
-        // 3. Kích hoạt nút quay lại (mũi tên)
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowTitleEnabled(false); // Ẩn title mặc định nếu bạn muốn dùng TextView tvName riêng
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        // 4. Xử lý sự kiện nhấn vào nút quay lại
         toolbar.setNavigationOnClickListener(v -> {
-            onBackPressed(); // Hoặc finish();
+            onBackPressed();
         });
 
         tvName = findViewById(R.id.tvName);
@@ -178,28 +168,12 @@ public class HikeDetailActivity extends AppCompatActivity {
         }
 
         tvName.setText(hike.getName());
-
         tvLocation.setText("Location: " + hike.getLocation());
-
         tvDate.setText("Date: " + hike.getDate());
+        tvParking.setText("Parking: " + (hike.isParkingAvailable() ? "Yes" : "No"));
+        tvLength.setText("Length: " + hike.getLength() + " km");
+        tvDifficulty.setText("Difficulty: " + hike.getDifficulty());
 
-        tvParking.setText(
-                "Parking: " +
-                        (hike.isParkingAvailable() ? "Yes" : "No")
-        );
-
-        tvLength.setText(
-                "Length: " +
-                        hike.getLength() +
-                        " km"
-        );
-
-        tvDifficulty.setText(
-                "Difficulty: " +
-                        hike.getDifficulty()
-        );
-
-        // Set difficulty color
         int color;
         switch (hike.getDifficulty()) {
             case "Easy":
@@ -215,13 +189,9 @@ public class HikeDetailActivity extends AppCompatActivity {
                 color = getResources().getColor(R.color.text_green, null);
                 break;
         }
+
         tvDifficulty.setTextColor(color);
-
-        tvDuration.setText(
-                "Estimated Duration: " +
-                        hike.getEstimatedDuration()
-        );
-
+        tvDuration.setText("Estimated Duration: " + hike.getEstimatedDuration());
         tvStatus.setText("Status: " + hike.getStatus());
 
         // Manage Buttons and Timer based on Status
@@ -241,15 +211,8 @@ public class HikeDetailActivity extends AppCompatActivity {
             btnReset.setVisibility(View.GONE);
         }
 
-        tvStartTime.setText(
-                "Start: " +
-                        (hike.getStartTime() == null ? "-" : hike.getStartTime())
-        );
-
-        tvEndTime.setText(
-                "Finish: " +
-                        (hike.getEndTime() == null ? "-" : hike.getEndTime())
-        );
+        tvStartTime.setText("Start: " + (hike.getStartTime() == null ? "-" : hike.getStartTime()));
+        tvEndTime.setText("Finish: " + (hike.getEndTime() == null ? "-" : hike.getEndTime()));
 
         if (hike.getStartTime() == null) {
             tvActualDuration.setText("Actual Duration: -");
@@ -382,16 +345,11 @@ public class HikeDetailActivity extends AppCompatActivity {
 
             Date endDate = format.parse(end);
 
-            long diff =
-                    endDate.getTime() -
-                            startDate.getTime();
+            long diff = endDate.getTime() - startDate.getTime();
 
             long totalSeconds = diff / 1000;
-
             long hours = totalSeconds / 3600;
-
             long minutes = (totalSeconds % 3600) / 60;
-
             long seconds = totalSeconds % 60;
 
             if (hours > 0) {

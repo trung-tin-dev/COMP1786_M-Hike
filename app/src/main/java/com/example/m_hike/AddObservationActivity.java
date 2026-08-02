@@ -45,7 +45,6 @@ public class AddObservationActivity extends AppCompatActivity {
     private PhotoAdapter photoAdapter;
     private ArrayList<Photo> photoList = new ArrayList<>();
     private ArrayList<String> tempPhotoPaths = new ArrayList<>();
-
     private DatabaseHelper databaseHelper;
     private int observationId = -1;
     private int hikeId;
@@ -92,7 +91,6 @@ public class AddObservationActivity extends AppCompatActivity {
 
         if (observationId == -1) {
             tvScreenTitle.setText("Add Observation");
-            // Set current time by default
             String currentTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
             etTime.setText(currentTime);
         } else {
