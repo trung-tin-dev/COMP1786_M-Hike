@@ -320,6 +320,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return photo;
     }
 
+    public void resetDatabase() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTOS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        onCreate(db);
+    }
+
     // Insert Hike
     public boolean insertHike(Hike hike) {
         SQLiteDatabase db = this.getWritableDatabase();

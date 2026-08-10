@@ -46,6 +46,7 @@ public class ProfileFragment extends Fragment {
     private TextView tvEmail;
     private ImageView ivAvatar;
     private TextView btnTrash;
+    private TextView btnResetDatabase;
     private TextView btnLogout;
 
     private DatabaseHelper databaseHelper;
@@ -85,6 +86,7 @@ public class ProfileFragment extends Fragment {
         tvEmail = view.findViewById(R.id.tvEmail);
         ivAvatar = view.findViewById(R.id.ivAvatar);
         btnTrash = view.findViewById(R.id.btnTrash);
+        btnResetDatabase = view.findViewById(R.id.btnResetDatabase);
         btnLogout = view.findViewById(R.id.btnLogout);
 
         databaseHelper = new DatabaseHelper(requireContext());
@@ -98,6 +100,8 @@ public class ProfileFragment extends Fragment {
         btnTrash.setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), TrashActivity.class));
         });
+
+        btnResetDatabase.setOnClickListener(v -> confirmResetDatabase());
 
         btnLogout.setOnClickListener(v -> logout());
 
@@ -167,6 +171,20 @@ public class ProfileFragment extends Fragment {
             loadUserData();
             Toast.makeText(getContext(), "Avatar updated", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void confirmResetDatabase() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Reset Database")
+                .setMessage("Are you sure you want to delete ALL data? This action cannot be undone and you will be logged out.")
+                .setPositiveButton("Reset", (dialog, which) -> {
+                    databaseHelper.resetDatabase();
+                    Toast.makeText(getContext(), "Database Reset Successful", Toast.LENGTH_SHORT).show();
+                    logout();
+                })
+                .setNegativeButton("Cancel", null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     private void logout() {
