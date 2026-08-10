@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.m_hike.database.DatabaseHelper;
@@ -198,49 +199,60 @@ public class AddHikeActivity extends AppCompatActivity {
         boolean parking = swParking.isChecked();
 
         if (hikeName.isEmpty()) {
-
             etHikeName.setError("Please enter hike name");
             etHikeName.requestFocus();
             return;
         }
 
         if (location.isEmpty()) {
-
             etLocation.setError("Please enter location");
             etLocation.requestFocus();
             return;
         }
 
         if (date.isEmpty()) {
-
-            Toast.makeText(this,
-                    "Please select date",
-                    Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(this, "Please select date", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (length.isEmpty()) {
-
             etLength.setError("Please enter hike length");
             etLength.requestFocus();
             return;
         }
 
         if (difficulty.isEmpty()) {
-
             actDifficulty.setError("Select difficulty");
             actDifficulty.requestFocus();
             return;
         }
 
+        // Prepare Hike details for confirmation
+        String message = "Name: " + hikeName + "\n" +
+                "Location: " + location + "\n" +
+                "Date: " + date + "\n" +
+                "Parking: " + (parking ? "Yes" : "No") + "\n" +
+                "Length: " + length + " km\n" +
+                "Difficulty: " + difficulty + "\n" +
+                "Duration: " + duration + "\n" +
+                "Description: " + (description.isEmpty() ? "None" : description);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Hike Details")
+                .setMessage(message)
+                .setPositiveButton("Confirm", (dialog, which) -> {
+                    performSave(hikeName, location, date, parking, length, difficulty, duration, description);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void performSave(String hikeName, String location, String date, boolean parking, 
+                             String length, String difficulty, String duration, String description) {
         Hike hike = new Hike();
 
-        SharedPreferences preferences =
-                getSharedPreferences("MHIKE", MODE_PRIVATE);
-
-        int userId =
-                preferences.getInt("userId", -1);
+        SharedPreferences preferences = getSharedPreferences("MHIKE", MODE_PRIVATE);
+        int userId = preferences.getInt("userId", -1);
 
         hike.setUserId(userId);
         hike.setName(hikeName);
@@ -261,11 +273,7 @@ public class AddHikeActivity extends AppCompatActivity {
         hike.setDescription(description);
         hike.setStatus("ACTIVE");
 
-        String now = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss",
-                Locale.getDefault())
-                .format(new Date());
-
+        String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         hike.setCreatedAt(now);
         hike.setUpdatedAt(now);
         hike.setDeletedAt(null);
@@ -275,24 +283,14 @@ public class AddHikeActivity extends AppCompatActivity {
             hike.setId(hikeId);
             success = databaseHelper.updateHike(hike);
         } else {
-
             success = databaseHelper.insertHike(hike);
         }
+
         if (success) {
-            Toast.makeText(
-                    this,
-                    isEdit
-                            ? "Hike updated successfully"
-                            : "Hike added successfully",
-                    Toast.LENGTH_SHORT
-            ).show();
+            Toast.makeText(this, isEdit ? "Hike updated successfully" : "Hike added successfully", Toast.LENGTH_SHORT).show();
             finish();
         } else {
-            Toast.makeText(
-                    this,
-                    "Add hike failed",
-                    Toast.LENGTH_SHORT
-            ).show();
+            Toast.makeText(this, "Save hike failed", Toast.LENGTH_SHORT).show();
         }
     }
 
