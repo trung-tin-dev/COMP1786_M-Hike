@@ -322,11 +322,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void resetDatabase() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHOTOS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBSERVATIONS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_HIKES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        onCreate(db);
+        db.delete(TABLE_PHOTOS, null, null);
+        db.delete(TABLE_OBSERVATIONS, null, null);
+        db.delete(TABLE_HIKES, null, null);
+        
+        db.execSQL("DELETE FROM sqlite_sequence WHERE name IN ('" +
+                TABLE_PHOTOS + "', '" + TABLE_OBSERVATIONS + "', '" + TABLE_HIKES + "')");
     }
 
     // Insert Hike

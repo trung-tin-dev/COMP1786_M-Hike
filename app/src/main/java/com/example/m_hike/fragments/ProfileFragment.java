@@ -175,12 +175,11 @@ public class ProfileFragment extends Fragment {
 
     private void confirmResetDatabase() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Reset Database")
-                .setMessage("Are you sure you want to delete ALL data? This action cannot be undone and you will be logged out.")
+                .setTitle("Reset Data")
+                .setMessage("Are you sure you want to delete all Hikes and Observations? Your user account and avatar will be kept.")
                 .setPositiveButton("Reset", (dialog, which) -> {
                     databaseHelper.resetDatabase();
-                    Toast.makeText(getContext(), "Database Reset Successful", Toast.LENGTH_SHORT).show();
-                    logout();
+                    Toast.makeText(getContext(), "Hike data has been cleared.", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
